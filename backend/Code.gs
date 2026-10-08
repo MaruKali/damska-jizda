@@ -15,13 +15,13 @@ function doPost(e) {
     let sheet = book.getSheetByName('Hlasy z webu');
     if (!sheet) {
       sheet = book.insertSheet('Hlasy z webu');
-      sheet.getRange(1,1,1,18).setValues([['Iniciály','Aktualizováno','Čerchov','Klínovec','Plechý','Tok','Milešovka','Kleť','Luž','Kamenec','Smrk','Sněžka','U oběšeného','Devět skal','Velká Deštná','Králický Sněžník','Praděd','Lysá hora']]);
+    sheet.getRange(1,1,1,19).setValues([['Iniciály','Aktualizováno','Poznámka','Čerchov','Klínovec','Plechý','Tok','Milešovka','Kleť','Luž','Kamenec','Smrk','Sněžka','U oběšeného','Devět skal','Velká Deštná','Králický Sněžník','Praděd','Lysá hora']]);
       sheet.setFrozenRows(1);
     }
     const values = sheet.getDataRange().getValues();
     const previous = values.findIndex((r,i) => i > 0 && r[0] === data.person);
     const target = previous >= 1 ? previous + 1 : sheet.getLastRow() + 1;
-    sheet.getRange(target,1,1,18).setValues([[data.person,new Date(),...grades]]);
+    sheet.getRange(target,1,1,19).setValues([[data.person,new Date(),String(data.notes||'').slice(0,1000),...grades]]);
     SpreadsheetApp.flush();
     return json({ok:true,person:data.person});
   } catch(err) { return json({ok:false,error:'Hlas se nepodařilo uložit.'}); }
