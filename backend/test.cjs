@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+let rows=[['Iniciály','Aktualizováno']],held=false;
+const sheet={getDataRange:()=>({getValues:()=>rows}),getLastRow:()=>rows.length,getRange:(r,c,n,w)=>({setValues:values=>{rows[r-1]=values[0]}})};
+const ctx={LockService:{getScriptLock:()=>({waitLock:()=>{held=true},hasLock:()=>held,releaseLock:()=>{held=false}})},SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet}),flush:()=>{}},ContentService:{MimeType:{JSON:'json'},createTextOutput:s=>({setMimeType:()=>JSON.parse(s)})}};
+vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/Code.gs','utf8'),ctx);
+const votes=Object.fromEntries(Array.from({length:16},(_,i)=>[i+1,1+i%5]));
+const send=x=>ctx.doPost({postData:{contents:JSON.stringify(x)}});
+assert.equal(send({person:'JaK',votes}).ok,true);assert.equal(rows.length,2);assert.equal(held,false);
+assert.equal(send({person:'JaK',votes:{...votes,1:5}}).ok,true);assert.equal(rows.length,2);assert.equal(rows[1][2],5);
+assert.equal(send({person:'MaK',votes}).ok,true);assert.equal(rows.length,3);
+for(const data of [{person:'x',votes},{person:'JaK',votes:{...votes,1:6}},{person:'JaK',votes:{1:2}},{person:'JaK',votes:{...votes,1:'1'}}])assert.equal(send(data).ok,false);
+assert.equal(rows.length,3);console.log('OK: validace, všech 16 známek, aktualizace bez duplikátů, druhá účastnice, uvolnění zámku.');
