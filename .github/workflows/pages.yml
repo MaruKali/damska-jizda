@@ -21,7 +21,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: |
           mkdir _site
-          cp index.html style.css app.js config.js _site/
+          cp index.html style.css design.css app.js config.js _site/
           cp -r assets _site/
       - uses: actions/upload-pages-artifact@v3
         with:
