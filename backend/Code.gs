@@ -15,17 +15,20 @@ function doPost(e) {
     let sheet = book.getSheetByName('Hlasy z webu');
     if (!sheet) {
       sheet = book.insertSheet('Hlasy z webu');
-    sheet.getRange(1,1,1,19).setValues([['Iniciály','Aktualizováno','Poznámka','Čerchov','Klínovec','Plechý','Tok','Milešovka','Kleť','Luž','Kamenec','Smrk','Sněžka','U oběšeného','Devět skal','Velká Deštná','Králický Sněžník','Praděd','Lysá hora']]);
+      sheet.getRange(1,1,1,19).setValues([['Iniciály','Aktualizováno','Poznámka','Čerchov','Klínovec','Plechý','Tok','Milešovka','Kleť','Luž','Kamenec','Smrk','Sněžka','U oběšeného','Devět skal','Velká Deštná','Králický Sněžník','Praděd','Lysá hora']]);
       sheet.setFrozenRows(1);
     }
-    const values = sheet.getDataRange().getValues();
-    const previous = values.findIndex((r,i) => i > 0 && r[0] === data.person);
-    const target = previous >= 1 ? previous + 1 : sheet.getLastRow() + 1;
+    // Upgrade the original sheet without shifting existing votes.
+    if (sheet.getRange(1,3).getValue() === 'Čerchov') {
+      sheet.insertColumnBefore(3);
+      sheet.getRange(1,3).setValue('Poznámka');
+    }
+    const target = sheet.getLastRow() + 1;
     sheet.getRange(target,1,1,19).setValues([[data.person,new Date(),String(data.notes||'').slice(0,1000),...grades]]);
     SpreadsheetApp.flush();
     return json({ok:true,person:data.person});
   } catch(err) { return json({ok:false,error:'Hlas se nepodařilo uložit.'}); }
   finally { if(lock.hasLock()) lock.releaseLock(); }
 }
-function doGet() { return json({ok:true,service:'Dámská jízda 2027'}); }
+function doGet() { return json({ok:true,service:'Dámská jízda 2027',version:'append-notes-v2'}); }
 function json(value) { return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON); }
